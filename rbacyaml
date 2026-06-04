@@ -1,0 +1,60 @@
+
+
+=====================================================================================================================
+root@ip-172-31-8-34:~# kubectl describe role dev-readonly -n dev
+kubectl describe role dev-fullaccess -n dev
+kubectl describe clusterrole cluster-admin-full
+Name:         dev-readonly
+Labels:       <none>
+Annotations:  <none>
+PolicyRule:
+  Resources   Non-Resource URLs  Resource Names  Verbs
+  ---------   -----------------  --------------  -----
+  configmaps  []                 []              [get watch list]
+  pods        []                 []              [get watch list]
+  services    []                 []              [get watch list]
+Name:         dev-fullaccess
+Labels:       <none>
+Annotations:  <none>
+PolicyRule:
+  Resources  Non-Resource URLs  Resource Names  Verbs
+  ---------  -----------------  --------------  -----
+  *.*        []                 []              [*]
+Name:         cluster-admin-full
+Labels:       <none>
+Annotations:  <none>
+PolicyRule:
+  Resources  Non-Resource URLs  Resource Names  Verbs
+  ---------  -----------------  --------------  -----
+  *.*        []                 []              [*]
+root@ip-172-31-8-34:~#
+=======================================================
+root@ip-172-31-8-34:~# kubectl auth can-i get pods -n dev --as=user1-ReadOnly --as-group=dev-readonly
+kubectl auth can-i create pods -n dev --as=user1-ReadOnly --as-group=dev-readonly
+kubectl auth can-i delete pods -n dev --as=user1-ReadOnly --as-group=dev-readonly
+yes
+no
+no
+root@ip-172-31-8-34:~# kubectl auth can-i get pods -n dev --as=user2-nsAccess --as-group=dev-fullaccess
+kubectl auth can-i create pods -n dev --as=user2-nsAccess --as-group=dev-fullaccess
+kubectl auth can-i delete pods -n dev --as=user2-nsAccess --as-group=dev-fullaccess
+yes
+yes
+yes
+root@ip-172-31-8-34:~# kubectl auth can-i create namespaces --as=user3-adminclusterAccess --as-group=cluster-admin-full
+kubectl auth can-i delete nodes --as=user3-adminclusterAccess --as-group=cluster-admin-full
+Warning: resource 'namespaces' is not namespace scoped
+yes
+Warning: resource 'nodes' is not namespace scoped
+yes
+root@ip-172-31-8-34:~#
+=======================================================================================
+
+
+
+
+
+
+
+
+
