@@ -66,3 +66,37 @@ spec:
     image: ubuntu
     command: ["/bin/bash", "-c", "sleep 6000"]
 root@ip-172-31-8-34:~/networkpolicy#
+==================================================================
+root@ip-172-31-8-34:~/networkpolicy# kubectl get all -n demo
+NAME                              READY   STATUS    RESTARTS   AGE
+pod/kubeserve1-7796b97f6d-dzkph   1/1     Running   0          89s
+pod/kubeserve1-7796b97f6d-fpnhz   1/1     Running   0          89s
+pod/test-pod-demo                 1/1     Running   0          89s
+
+NAME            TYPE       CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
+service/mysvc   NodePort   10.99.103.32   <none>        80:30080/TCP   89s
+
+NAME                         READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/kubeserve1   2/2     2            2           89s
+
+NAME                                    DESIRED   CURRENT   READY   AGE
+replicaset.apps/kubeserve1-7796b97f6d   2         2         2       89s
+root@ip-172-31-8-34:~/networkpolicy#
+
+===============================================================================
+==================================
+root@ip-172-31-8-34:~/networkpolicy# kubectl exec -it test-pod-demo -n demo -- bash
+root@test-pod-demo:/# cat /etc/resolv.conf
+search demo.svc.cluster.local svc.cluster.local cluster.local ap-south-1.compute.internal
+nameserver 10.96.0.10
+options ndots:5
+root@test-pod-demo:/# apt-get update && apt-get install curl -y
+
+root@test-pod-demo:/# curl mysvc
+This is v1 pod kubeserve1-7796b97f6d-dzkph
+root@test-pod-demo:/#
+===============================
+
+
+
+
