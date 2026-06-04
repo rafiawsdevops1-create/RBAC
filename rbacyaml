@@ -1,6 +1,126 @@
+root@ip-172-31-8-34:~/kubernetes/auth# cat aws-auth.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aws-auth
+  namespace: kube-system
 
+data:
+  mapRoles: |
+    - rolearn: arn:aws:iam::591874054217:role/eksctl-demo-cluster-nodegroup-demo-NodeInstanceRole-cW2EtCUZvNc7
+      username: system:node:{{EC2PrivateDNSName}}
+      groups:
+        - system:bootstrappers
+        - system:nodes
+
+  mapUsers: |
+    - groups:
+        - dev-readonly
+      userarn: arn:aws:iam::982939999586:user/user1-ReadOnly
+      username: user1-ReadOnly
+
+    - groups:
+        - dev-fullaccess
+      userarn: arn:aws:iam::982939999586:user/user2-nsAccess
+      username: user2-nsAccess
+
+    - groups:
+        - cluster-admin-full
+      userarn: arn:aws:iam::982939999586:user/user3-adminclusterAccess
+      username: user3-adminclusterAccess
+root@ip-172-31-8-34:~/kubernetes/auth#
 
 =====================================================================================================================
+root@ip-172-31-8-34:~/kubernetes/auth# cat role-dev-readonly.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: dev
+  name: dev-readonly
+
+rules:
+- apiGroups: [""]
+  resources: ["pods", "services", "configmaps"]
+  verbs: ["get", "watch", "list"]
+root@ip-172-31-8-34:~/kubernetes/auth#
+=========================================================================================================================
+root@ip-172-31-8-34:~/kubernetes/auth# cat role-dev-fullaccess.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: dev-fullaccess
+  namespace: dev
+
+rules:
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["*"]
+root@ip-172-31-8-34:~/kubernetes/auth#
+=================================================================================================================================
+root@ip-172-31-8-34:~/kubernetes/auth# cat ClusterRole-cluster-admin-full.yml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cluster-admin-full
+
+rules:
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["*"]
+root@ip-172-31-8-34:~/kubernetes/auth#
+==========================================================================
+root@ip-172-31-8-34:~/kubernetes/auth# cat rolebinding-dev-readonly.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: rolebinding-dev-readonly
+  namespace: dev
+
+subjects:
+  - kind: Group
+    name: dev-readonly
+    apiGroup: rbac.authorization.k8s.io
+
+roleRef:
+  kind: Role
+  name: dev-readonly
+  apiGroup: rbac.authorization.k8s.io
+====================================================================================
+root@ip-172-31-8-34:~/kubernetes/auth# cat rolebinding-dev-fullaccess.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: rolebinding-dev-fullaccess
+  namespace: dev
+
+subjects:
+  - kind: Group
+    name: dev-fullaccess
+    apiGroup: rbac.authorization.k8s.io
+
+roleRef:
+  kind: Role
+  name: dev-fullaccess
+  apiGroup: rbac.authorization.k8s.io
+=============================================================================================================
+root@ip-172-31-8-34:~/kubernetes/auth# cat rolebinding--cluster-admin-full.yml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: rolebinding-cluster-admin-full
+
+subjects:
+  - kind: Group
+    name: cluster-admin-full
+    apiGroup: rbac.authorization.k8s.io
+
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin-full
+  apiGroup: rbac.authorization.k8s.io
+root@ip-172-31-8-34:~/kubernetes/auth#
+
+================================================================================
 root@ip-172-31-8-34:~# kubectl describe role dev-readonly -n dev
 kubectl describe role dev-fullaccess -n dev
 kubectl describe clusterrole cluster-admin-full
